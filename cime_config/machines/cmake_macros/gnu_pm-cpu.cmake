@@ -4,6 +4,8 @@ if (COMP_NAME STREQUAL gptl)
 endif()
 string(APPEND CMAKE_C_FLAGS_RELEASE " -O2 -g")
 string(APPEND CMAKE_Fortran_FLAGS_RELEASE " -O2 -g")
+string(APPEND CMAKE_Fortran_FLAGS " -I/global/cfs/cdirs/e3sm/FTorch/include")
+string(APPEND CMAKE_Fortran_FLAGS " -I/global/cfs/cdirs/e3sm/FTorch/build/modules")
 
 set(MPICC "cc")
 set(MPICXX "CC")
