@@ -59,6 +59,10 @@ module ftorch_inference
    ! Inference
         call torch_model_forward(model, in_tensors, out_tensors)
 
+   ! Print output for testing
+   ! expected = [0.0_wp, 2.0_wp, 4.0_wp, 6.0_wp, 8.0_wp]  
+        write(iulog, *) 'Output:', out_data(:)
+
    ! Cleanup
         call torch_delete(model)
         call torch_delete(in_tensors)
