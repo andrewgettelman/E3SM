@@ -319,6 +319,11 @@ macro(build_model COMP_CLASS COMP_NAME)
         if (USE_RRTMGPXX)
           target_link_libraries(${TARGET_NAME} PRIVATE rrtmgp rrtmgp_interface)
         endif()
+        target_link_directories(${TARGET_NAME} PRIVATE /global/cfs/cdirs/m4549/code/FTorch_gnu_cpu/lib64)
+        target_link_libraries(${TARGET_NAME} PRIVATE /global/cfs/cdirs/m4549/code/FTorch_gnu_cpu/lib64/libftorch.so)
+        target_link_options(${TARGET_NAME} PRIVATE -Wl,-rpath,/global/cfs/cdirs/m4549/code/FTorch_gnu_cpu/lib64)
+        target_link_directories(${TARGET_NAME} PRIVATE /global/cfs/cdirs/e3sm/software/libtorch/libtorch-cxx11-abi-shared-with-deps-2.6.0+cpu/lib)
+        target_link_options(${TARGET_NAME} PRIVATE -Wl,-rpath,/global/cfs/cdirs/e3sm/software/libtorch/libtorch-cxx11-abi-shared-with-deps-2.6.0+cpu/lib)      
       endif()
       if (COMP_NAME STREQUAL "elm")
         if (USE_PETSC)
@@ -347,17 +352,6 @@ macro(build_model COMP_CLASS COMP_NAME)
       endif ()
     endif()
   endif()
-
-# Additions for FTorch
-
-	if (USE_FTORCH)
-	  target_link_libraries(${TARGET_NAME} PRIVATE FTorch::ftorch)
-  endif()
-
-  target_link_directories(${TARGET_NAME} PRIVATE /opt/nvidia/hpc_sdk/Linux_x86_64/24.5/cuda/12.4/lib64)
-  target_link_options(${TARGET_NAME} PRIVATE -Wl,-rpath,/opt/nvidia/hpc_sdk/Linux_x86_64/24.5/cuda/12.4/lib64)
-  target_link_directories(${TARGET_NAME} PRIVATE /global/common/software/nersc9/pytorch/2.6.0/lib/python3.12/site-packages/torch/lib)
-  target_link_options(${TARGET_NAME} PRIVATE -Wl,-rpath,/global/common/software/nersc9/pytorch/2.6.0/lib/python3.12/site-packages/torch/lib)
 
   # Subtle: In order for fortran dependency scanning to work, our CPPFPP/DEFS must be registered
   # as COMPILE_DEFINITIONS, not simple added via CMAKE_Fortran_Flags. Also, CPPDEFS *must*

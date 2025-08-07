@@ -322,8 +322,9 @@
     </environment_variables>
     <environment_variables compiler="gnu">
       <env name="MOAB_ROOT">$SHELL{if [ -z "$MOAB_ROOT" ]; then echo /global/cfs/cdirs/e3sm/software/moab/gnu; else echo "$MOAB_ROOT"; fi}</env>
-      <env name="FTorch_ROOT">$SHELL{if [ -z "$FTorch_ROOT" ]; then echo /global/cfs/cdirs/e3sm/FTorch; else echo "$FTorch_ROOT"; fi}</env>
-      <env name="LD_LIBRARY_PATH">/opt/nvidia/hpc_sdk/Linux_x86_64/24.5/cuda/12.4/lib64:$ENV{LD_LIBRARY_PATH}</env>
+      <env name="FTorch_ROOT">$SHELL{if [ -z "$FTorch_ROOT" ]; then echo /global/cfs/cdirs/m4549/code/FTorch_gnu_cpu; else echo "$FTorch_ROOT"; fi}</env>
+      <env name="LD_LIBRARY_PATH">/global/cfs/cdirs/e3sm/software/libtorch/libtorch-cxx11-abi-shared-with-deps-2.6.0+cpu/lib:$ENV{LD_LIBRARY_PATH}</env>
+      <env name="MPICH_GPU_SUPPORT_ENABLED">0</env>
     </environment_variables>
     <resource_limits>
       <resource name="RLIMIT_STACK">-1</resource>

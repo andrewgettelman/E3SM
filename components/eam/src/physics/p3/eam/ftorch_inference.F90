@@ -1,7 +1,7 @@
 module ftorch_inference
 
    ! Import precision info from iso
-   use, intrinsic :: iso_fortran_env, only : sp => real64
+   use, intrinsic :: iso_fortran_env, only : sp => real32
 
    use cam_logfile,  only: iulog
  
@@ -47,22 +47,22 @@ module ftorch_inference
         write(iulog, *) 'torch_kCPU (device):',  torch_kCPU
 
    ! Load ML model
-   !     call torch_model_load(model, trim(cb_torch_model), torch_kCPU)
+        call torch_model_load(model, trim(cb_torch_model), torch_kCPU)
 
    ! Initialise data
         in_data = [0.0_wp, 1.0_wp, 2.0_wp, 3.0_wp, 4.0_wp]
 
    ! Create Torch input/output tensors from the above arrays
-   !     call torch_tensor_from_array(in_tensors(1), in_data, torch_kCPU)
-   !    call torch_tensor_from_array(out_tensors(1), out_data, torch_kCPU)
+        call torch_tensor_from_array(in_tensors(1), in_data, torch_kCPU)
+        call torch_tensor_from_array(out_tensors(1), out_data, torch_kCPU)
 
    ! Inference
-   !     call torch_model_forward(model, in_tensors, out_tensors)
+        call torch_model_forward(model, in_tensors, out_tensors)
 
    ! Cleanup
-   !     call torch_delete(model)
-   !     call torch_delete(in_tensors)
-   !    call torch_delete(out_tensors)
+        call torch_delete(model)
+        call torch_delete(in_tensors)
+        call torch_delete(out_tensors)
 
    end subroutine ftorch_inference_cpu
 
