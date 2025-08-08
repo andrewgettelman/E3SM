@@ -76,6 +76,13 @@ module micro_p3
                                scream_log10, scream_exp, scream_expm1, scream_tanh
 #endif
 
+
+  ! Import library for interfacing with PyTorch to load Neural Networks
+  use ftorch, only : torch_model, torch_tensor, torch_kCPU, torch_delete, &
+                      torch_tensor_from_array, torch_model_load, torch_model_forward
+
+  use ftorch_inference, only : ftorch_inference_cpu, init_ftorch_inference
+
   implicit none
   save
 
@@ -87,7 +94,7 @@ module micro_p3
 
   !ice lookup table values for ice-rain collision/collection
   real(rtype), protected, dimension(densize,rimsize,isize,rcollsize,collect_table_size) :: collect_table_vals
-    
+
   ! lookup table values for rain shape parameter mu_r
   real(rtype), protected, dimension(150) :: mu_r_table_vals
 
@@ -97,6 +104,9 @@ module micro_p3
   type realptr
      real(rtype), dimension(:), pointer :: p
   end type realptr
+
+
+  type(torch_model) :: model
 
 contains
 
@@ -194,11 +204,15 @@ end function bfb_expm1
     character*(*), intent(in)    :: lookup_file_dir                !directory of the lookup tables
     character(len=16), intent(in) :: version_p3  !version number of P3 package
 
+    character(len=1024)   :: ftorch_emulator_file
+
+    ftorch_emulator_file = '/global/homes/a/agett/python/ftorch/saved_simplenet_model_cpu.pt'
+
     if (masterproc) write(iulog,*) ''
     if (masterproc) write(iulog,*) ' P3 microphysics: v',version_p3
 
     call p3_init_a(lookup_file_dir, version_p3)
-    call p3_init_b()
+    call p3_init_b(ftorch_emulator_file)
 
     if (masterproc) write(iulog,*) '   P3_INIT DONE.'
     if (masterproc) write(iulog,*) ''
@@ -308,11 +322,17 @@ end function bfb_expm1
 
   end subroutine p3_set_tables
 
-  SUBROUTINE p3_init_b()
+  SUBROUTINE p3_init_b(ftorch_emulator_file)
     implicit none
+    
+    character*(*), intent(in)     :: ftorch_emulator_file
+
     integer                      :: i,ii,jj,kk
     real(rtype)                         :: lamr,mu_r,dm,dum1,dum2,dum3,dum4,dum5,  &
          dd,amg,vt,dia
+
+
+    call init_ftorch_inference(ftorch_emulator_file, model)
 
     !------------------------------------------------------------------------------------------!
 
@@ -869,6 +889,9 @@ end function bfb_expm1
       call ice_nucleation(t_atm(k),inv_rho(k),&
            ni(k),ni_activated(k),qv_supersat_i(k),inv_dt,do_predict_nc, do_prescribed_CCN, &
            qinuc, ni_nucleat_tend)
+
+      ! Test: Do inference here....
+      call ftorch_inference_cpu(model)
 
       !................
       ! cloud water autoconversion

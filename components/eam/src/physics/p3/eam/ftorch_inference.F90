@@ -14,40 +14,37 @@ module ftorch_inference
    ! Set working precision for reals
    integer, parameter :: wp = sp
 
-   !integer, parameter :: kCPU = 0
-
-   character(len=:), allocatable, save :: cb_torch_model 
-
    public ftorch_inference_cpu,init_ftorch_inference
 
    contains
 
-   subroutine init_ftorch_inference()
-        if (.not. allocated(cb_torch_model)) then
-            cb_torch_model = "/global/homes/a/agett/python/ftorch/saved_simplenet_model_cpu.pt"
-        end if
+   subroutine init_ftorch_inference(model_file_path,model)
+        character(len=*), intent(in) :: model_file_path
+        type(torch_model), intent(inout) :: model
+
+        write(iulog, *) 'Torch model path:',  trim(model_file_path)
+        write(iulog, *) 'torch_kCPU (device):',  torch_kCPU
+
+   ! Load ML model
+        call torch_model_load(model, trim(model_file_path), torch_kCPU) 
+        write(iulog, *) 'Torch Model Loaded'   
+
    end subroutine init_ftorch_inference
 
-   subroutine ftorch_inference_cpu()
+   subroutine ftorch_inference_cpu(model)
+
+   ! Pass in the model
+        type(torch_model), intent(in) :: model
 
    ! Set up Fortran data structures
         real(wp), dimension(5), target :: in_data
         real(wp), dimension(5), target :: out_data
 
    ! Set up Torch data structures
-   ! The net, a vector of input tensors (in this case we only have one), and the output tensor
-        type(torch_model) :: model
+   ! a vector of input tensors (in this case we only have one), and the output tensor
+ 
         type(torch_tensor), dimension(1) :: in_tensors
         type(torch_tensor), dimension(1) :: out_tensors
-
-   ! Optional: defensive check
-        if (.not. allocated(cb_torch_model)) call init_ftorch_inference()
-
-        write(iulog, *) 'Torch model path:',  trim(cb_torch_model)
-        write(iulog, *) 'torch_kCPU (device):',  torch_kCPU
-
-   ! Load ML model
-        call torch_model_load(model, trim(cb_torch_model), torch_kCPU)
 
    ! Initialise data
         in_data = [0.0_wp, 1.0_wp, 2.0_wp, 3.0_wp, 4.0_wp]
@@ -64,7 +61,6 @@ module ftorch_inference
         write(iulog, *) 'Output:', out_data(:)
 
    ! Cleanup
-        call torch_delete(model)
         call torch_delete(in_tensors)
         call torch_delete(out_tensors)
 

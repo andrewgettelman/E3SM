@@ -44,8 +44,6 @@ module micro_p3_interface
   use cam_history_support, only: add_hist_coord
   use iop_data_mod,   only: precip_off
 
-  use ftorch_inference,   only: ftorch_inference_cpu
-
   implicit none
   save
 
@@ -460,9 +458,6 @@ end subroutine micro_p3_readnl
 
     call micro_p3_utils_init(cpair,rair,rh2o,rhoh2o,mwh2o,mwdry,gravit,latvap,latice, &
              cpliq,tmelt,pi,iulog,masterproc)
-         
-    ! FTorch Library Example                                                    
-    call ftorch_inference_cpu()
 
 
     ! CALL P3 INIT:
