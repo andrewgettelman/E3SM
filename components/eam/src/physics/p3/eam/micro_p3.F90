@@ -50,6 +50,9 @@
 
 module micro_p3
 
+   ! Import precision info from iso
+   use, intrinsic :: iso_fortran_env, only : sp => real32
+
    ! get real kind from utils
    use physics_utils, only: rtype,rtype8,btype
 
@@ -87,6 +90,9 @@ module micro_p3
   save
 
   public  :: p3_init,p3_main
+
+  ! Set working precision for single precision
+  integer, parameter :: wp = sp
 
   ! protected items should be treated as private for everyone except tests
 
@@ -675,6 +681,11 @@ end function bfb_expm1
 
     logical(btype) :: log_exitlevel, log_wetgrowth
 
+   ! Initialise FTorch sample emulator data
+   real(rtype), dimension(5), target :: ftorch_in
+   real(sp), dimension(5), target :: ftorch_out_sp
+   real(rtype), dimension(5), target :: ftorch_out
+
    rho_qm_cloud = 400._rtype
    is_hydromet_present = .false.
 
@@ -890,8 +901,17 @@ end function bfb_expm1
            ni(k),ni_activated(k),qv_supersat_i(k),inv_dt,do_predict_nc, do_prescribed_CCN, &
            qinuc, ni_nucleat_tend)
 
-      ! Test: Do inference here....
-      call ftorch_inference_cpu(model)
+      !.....................................................     
+      ! Test: Do inference with Ftorch here....
+      ! This test is single precision, so pass that, and convert output back to double
+
+      ftorch_in = [0.0_rtype, 1.0_rtype, 2.0_rtype, 3.0_rtype, 4.0_rtype]
+
+      call ftorch_inference_cpu(model,real(ftorch_in, kind=sp),ftorch_out_sp)
+
+      ftorch_out = real(ftorch_out_sp, kind=rtype)
+
+      write(iulog, *) 'P3 Ftorch Output:', ftorch_out(:)
 
       !................
       ! cloud water autoconversion
