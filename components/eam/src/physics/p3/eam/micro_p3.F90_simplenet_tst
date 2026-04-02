@@ -757,9 +757,15 @@ end function bfb_expm1
    real(sp),    dimension(4),  target :: ftorch_out_sp
    real(rtype), dimension(4),  target :: ftorch_out
    ! Debug flag for emulator testing
-   logical(btype), parameter :: test_emulator = .false.
+   logical(btype), parameter :: test_emulator = .true.
    ! Ensure we only emit the debug block once per run
    logical(btype), save :: test_emulator_logged = .false.
+
+   ! Initialise FTorch sample emulator data
+   real(rtype), dimension(5), target :: ftorch_tst_in
+   real(sp), dimension(5), target :: ftorch_tst_out_sp
+   real(rtype), dimension(5), target :: ftorch_tst_out
+
 
    rho_qm_cloud = 400._rtype
    is_hydromet_present = .false.
@@ -1057,8 +1063,6 @@ end function bfb_expm1
 !
          qctend_TAU = -1. * qctend_TAU_raw
          nctend_TAU = -1. * nctend_TAU_raw
-!++ag: Just for fun, could flip the sign of nrtend_TAU as a check
-!         nrtend_TAU = -1._rtype * nrtend_TAU_raw
          nrtend_TAU = nrtend_TAU_raw
 !         qrtend_TAU = qrtend_TAU_raw
 
@@ -1082,6 +1086,8 @@ end function bfb_expm1
          ! DEBUG: Test emulator with known inputs from test set
          ! Only run once per column at the bottom level (kbot)
          if (test_emulator .and. k == kbot .and. .not. test_emulator_logged) then
+            ! Hard inputs for Simplenet: /global/cfs/cdirs/m4942/e3sm/emulators/saved_simplenet_model_cpu.pt
+            ftorch_tst_in = [0.0_rtype, 1.0_rtype, 2.0_rtype, 3.0_rtype, 4.0_rtype]  ! dummy input for testing
 
 !            write(iulog, *) 'P3 Ftorch Output:', ftorch_out(:)
             write(iulog, *) '========================================='
@@ -1100,6 +1106,12 @@ end function bfb_expm1
             write(iulog, *) '  RHO_CLUBB  =', ftorch_in(9)
             write(iulog, *) '  CLOUD      =', ftorch_in(10)
             write(iulog, *) '  FREQR      =', ftorch_in(11)
+            
+            write(iulog, *) '  Tst in 1  =', ftorch_tst_in(1)
+            write(iulog, *) '  Tst in 2  =', ftorch_tst_in(2)
+            write(iulog, *) '  Tst in 3  =', ftorch_tst_in(3)
+            write(iulog, *) '  Tst in 4  =', ftorch_tst_in(4)
+            write(iulog, *) '  Tst in 5  =', ftorch_tst_in(5)
 
 
             ! write(iulog, *) '-----------------------------------------'
@@ -1133,10 +1145,15 @@ end function bfb_expm1
          endif
 
          ! Run emulator inference (single precision)
-         call ftorch_inference_cpu(model, real(ftorch_in, kind=sp), ftorch_out_sp)
+        ! call ftorch_inference_cpu(model, real(ftorch_in, kind=sp), ftorch_out_sp)
 
          ! Convert output back to model precision (4 tendencies)
-         ftorch_out = real(ftorch_out_sp, kind=rtype)
+         !ftorch_out = real(ftorch_out_sp, kind=rtype)
+
+         call ftorch_inference_cpu(model, real(ftorch_tst_in, kind=sp), ftorch_tst_out_sp)
+
+         ! Convert output back to model precision (4 tendencies)
+         ftorch_tst_out = real(ftorch_tst_out_sp, kind=rtype)
 
          ! DEBUG: Print outputs from test
          if (test_emulator .and. k == kbot .and. .not. test_emulator_logged) then
@@ -1149,6 +1166,12 @@ end function bfb_expm1
             write(iulog, *) '========================================='
             write(iulog, *) '=== END EMULATOR DEBUG TEST ==='
             write(iulog, *) '========================================='
+
+            write(iulog, *) '  Tst out 1  =', ftorch_tst_out(1)
+            write(iulog, *) '  Tst out 2  =', ftorch_tst_out(2)
+            write(iulog, *) '  Tst out 3  =', ftorch_tst_out(3)
+            write(iulog, *) '  Tst out 4  =', ftorch_tst_out(4)
+            write(iulog, *) '  Tst out 5  =', ftorch_tst_out(5)
 
             test_emulator_logged = .true.
          endif
@@ -1169,8 +1192,6 @@ end function bfb_expm1
          qctend_TAU = -1._rtype * qctend_TAU_raw
          nctend_TAU = -1._rtype * nctend_TAU_raw
          nrtend_TAU = nrtend_TAU_raw
-!++ag: Just for fun, could flip the sign of nrtend_TAU...
-!         nrtend_TAU = -1._rtype * nrtend_TAU_raw
 
          ! Diagnostics: store initial state
          qc_in_TAU = qc_incld(k)
